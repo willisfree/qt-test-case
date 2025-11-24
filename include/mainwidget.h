@@ -15,6 +15,8 @@
 #include "./Ship.h"
 #include "./Algos.h"
 
+#include "./ui_cargo.h"
+
 //#include <string>
 
 class QPushButton;
@@ -113,22 +115,13 @@ public:
     ThirdRow(QWidget* parent)
     : QWidget(parent)
     {
-        weightField = new CustomInput(boxWeightPLaceholder, this);
-        priceField = new CustomInput(boxPriceLaceholder, this);
-
-        mainLayout = new QVBoxLayout(this);
-
-        mainLayout->addWidget(weightField);
-        mainLayout->addWidget(priceField);
+      //QHBoxLayout* layout = new QHBoxLayout(this);
+      ui.setupUi(this);
     }
 
 private:
-    QVBoxLayout* mainLayout;
-
-    CustomInput* weightField;
-    CustomInput* priceField;
+    Ui::Form ui;
 };
-
 
 
 class ShipInfo : public QLabel {

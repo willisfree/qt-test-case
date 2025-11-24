@@ -24,15 +24,17 @@ MainWidget::MainWidget(QWidget *parent) :
   //sec_row->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
   //sec_row->setMinimumHeight(50);
 
-  QGridLayout *mainLayout = new QGridLayout;
+  QGridLayout *mainLayout = new QGridLayout();
   mainLayout->setSpacing(10);
   
 
   mainLayout->addWidget(shipData_,0,2, Qt::AlignRight);
   mainLayout->addWidget(secRow,1,0, 1, -1);
 
-  mainLayout->addWidget(textBrowser_,2,1);
-  mainLayout->addWidget(thirdRow,2,0);
+  //mainLayout->addWidget(textBrowser_,2,1);
+  mainLayout->addWidget(thirdRow,0,0);
+
+  std::cout << "--------------visIBILITY:  " + thirdRow->isVisible() << '\n'; 
 
   mainLayout->addWidget(button_,2,2);
 

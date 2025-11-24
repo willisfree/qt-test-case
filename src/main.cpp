@@ -2,6 +2,26 @@
 #include "../include/mainwidget.h"
 #include "../include/Ship.h"
 
+
+
+
+// debugging
+#include <execinfo.h>
+#include <stdio.h>
+
+void printStackTrace() {
+    const int maxFrames = 100;
+    void *frames[maxFrames];
+    int frameCount = backtrace(frames, maxFrames);
+    char **frameStrings = backtrace_symbols(frames, frameCount);
+
+    for (int i = 0; i < frameCount; ++i) {
+        printf("%s\n", frameStrings[i]);
+    }
+    free(frameStrings);
+}
+//
+
 int main(int argc, char *argv[])
 {
 
