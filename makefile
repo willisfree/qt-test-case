@@ -4,12 +4,12 @@ PROJECT=cpp-qt-gui-template
 .PHONY: all clean preprocess
 
 all: build/$(PROJECT)
-	
+
 build/$(PROJECT): build/Makefile
 	make --directory=build
-	
+
 build/Makefile: build/$(PROJECT).pro qt-preprocess
-	qmake -o build/Makefile build/$(PROJECT).pro
+	qmake CONFIG+=debug -o build/Makefile build/$(PROJECT).pro
 
 qt-preprocess: build/$(PROJECT).pro
 	sed -i '/^INCLUDEPATH.*/a \\nQT += widgets' "build/$(PROJECT).pro"
