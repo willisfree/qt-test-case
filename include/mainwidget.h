@@ -27,8 +27,13 @@ class QTextBrowser;
 static const char* liftingPlaceholder = "Грзоподъёмность судна (в тоннах)";
 static const char* liftingErr = "Максимальная грузоподъёмность судна не должа превышать 10 000 тонн";
 
-static const char* boxWeightPLaceholder = "Вес груза.";
-static const char* boxPriceLaceholder = "Цена груза";
+static const char* numberOfCargos = "\320\232\320\276\320\273\320\270\321\207\320\265\321\201\321\202\320\262\320\276 \320\263\321\200\321\203\320\267\320\276\320\262: ";
+static const char* commonWeight = "Общий вес: ";
+static const char* commonPrice = "Общая стоимость: ";
+
+
+static const char* boxWeightPLaceholder = "Вес груза: ";
+static const char* boxPricePlaceholder = "Цена груза: ";
 
 
 
@@ -115,12 +120,103 @@ public:
     ThirdRow(QWidget* parent)
     : QWidget(parent)
     {
-      //QHBoxLayout* layout = new QHBoxLayout(this);
-      ui.setupUi(this);
+
+        QVBoxLayout *vbox = new QVBoxLayout;
+
+        boxLabel = new QLabel(this);
+
+        lineEdit = new QLineEdit(this);
+        lineEdit_2 = new QLineEdit(this);
+        pushButton = new QPushButton(this);
+        totalLabel = new QLabel(this);
+        totalWeight = new QLabel(this);
+        totalPrice = new QLabel(this);
+
+
+        lineEdit->setPlaceholderText(boxWeightPLaceholder);
+        lineEdit_2->setPlaceholderText(boxPricePlaceholder);
+
+
+        vbox->addWidget(boxLabel);
+        vbox->addWidget(lineEdit);
+        vbox->addWidget(lineEdit_2);
+        vbox->addWidget(pushButton);
+        vbox->addWidget(totalLabel);
+        vbox->addWidget(totalWeight);
+        vbox->addWidget(totalPrice);
+
+
+        setLayout(vbox);
+
+        retranslateUi(this);
+
+        connect(this->pushButton, &QPushButton::clicked, this, &ThirdRow::addNewCargo);
+
+      //ui.setupUi(this);
+    }
+
+    void retranslateUi(QWidget *Form)
+    {
+        boxLabel->setText(QCoreApplication::translate("ThirdRow", "\320\223\321\200\321\203\320\267", nullptr));
+        totalWeight->setText(commonWeight);
+        totalPrice->setText(commonPrice);
+        pushButton->setText(QCoreApplication::translate("ThirdRow", "+", nullptr));
+        totalLabel->setText(QCoreApplication::translate("ThirdRow", numberOfCargos, nullptr));
+    } // retranslateUi
+
+
+private slots:
+    void addNewCargo() {
+        int extractedWeight = Algos::firstIntFromStr(this->lineEdit->text().toUtf8().constData());
+        int extractePrice = Algos::firstIntFromStr(this->lineEdit_2->text().toUtf8().constData());
+
+
+        if (extractedWeight < 0 || extractePrice < 0) {
+          try {
+            throw IndexErr("Вес и стоимость груза должны быть указаны числом. Проверьре корректность введённых данных");
+          } catch (...) {
+              std::cerr << "Ошибка при добавлении груза. Пропуск операции.\n";
+              return;
+            //показывать ошибку красным. // WIP
+          }
+        }
+
+        boxes.push_back(CargoBox{extractedWeight, extractePrice});
+        updateLabels();
+    
+
+        QString bwp = QString(QString(boxWeightPLaceholder) + ": %1").arg(extractedWeight);
+        lineEdit->setText(bwp);
+
+        QString bpp = QString(QString(boxPricePlaceholder) + ": %1").arg(extractePrice);
+        lineEdit_2->setText(bpp);
     }
 
 private:
-    Ui::Form ui;
+  void updateLabels() {
+      QString totalVal = QString(QString(numberOfCargos) + ": %1").arg(boxes.size());
+      totalLabel->setText(QCoreApplication::translate("ThirdRow", totalVal.toUtf8().constData(), nullptr));
+
+      totalVal = QString(QString(commonWeight) + ": %1").arg(boxes.size());
+      totalWeight->setText(QCoreApplication::translate("ThirdRow", totalVal.toUtf8().constData(), nullptr));
+      
+      totalVal = QString(QString(commonPrice) + ": %1").arg(boxes.size());
+      totalPrice->setText(QCoreApplication::translate("ThirdRow", totalVal.toUtf8().constData(), nullptr));
+
+
+  }
+
+private:
+  QLabel *boxLabel;
+  QLineEdit *lineEdit;
+  QLineEdit *lineEdit_2;
+  QPushButton *pushButton;
+
+  QLabel *totalLabel;
+  QLabel *totalWeight;
+  QLabel *totalPrice;
+
+  QVector<CargoBox> boxes;
 };
 
 

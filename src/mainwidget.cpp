@@ -15,8 +15,8 @@ ShipInfo::~ShipInfo() {
 MainWidget::MainWidget(QWidget *parent) :
     QWidget(parent)
 {
-  button_       = new QPushButton(tr("Push Me!"));
-  textBrowser_  = new QTextBrowser();
+  button_       = new QPushButton(tr("Push Me!"), this);
+  textBrowser_  = new QTextBrowser(); // pass this and see fun in left angle/ why?
   secRow       = new SecondRow(liftingPlaceholder, this);
   shipData_     = new ShipInfo("Emerald", this);
   thirdRow      = new ThirdRow(this);
@@ -25,18 +25,21 @@ MainWidget::MainWidget(QWidget *parent) :
   //sec_row->setMinimumHeight(50);
 
   QGridLayout *mainLayout = new QGridLayout();
+  mainLayout->setRowStretch(0, 1);
+  //mainLayout->setColumnStretch(0, 0);
   mainLayout->setSpacing(10);
   
 
   mainLayout->addWidget(shipData_,0,2, Qt::AlignRight);
   mainLayout->addWidget(secRow,1,0, 1, -1);
 
-  //mainLayout->addWidget(textBrowser_,2,1);
-  mainLayout->addWidget(thirdRow,0,0);
+  thirdRow->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  mainLayout->addWidget(thirdRow,2,0);
 
   std::cout << "--------------visIBILITY:  " + thirdRow->isVisible() << '\n'; 
 
-  mainLayout->addWidget(button_,2,2);
+  //mainLayout->addWidget(button_,2,2);
+  button_->hide();
 
   setLayout(mainLayout);
   setWindowTitle(tr("Connecting buttons to processes.."));
@@ -47,8 +50,6 @@ MainWidget::MainWidget(QWidget *parent) :
 
 // Destructor
 MainWidget::~MainWidget() {
-  delete button_;
-  delete textBrowser_;
 }
 
 // Handler for button click
