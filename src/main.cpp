@@ -24,12 +24,7 @@ void printStackTrace() {
 
 int main(int argc, char *argv[])
 {
-
-    //Ship ship(10);  // 10 тонн
-
-    //CargoBox(-234324, 434);
-    CargoBox(1, 434);
-
+  //Ship ship;
 
   // Creates an instance of QApplication
   QApplication app(argc, argv);
@@ -38,9 +33,7 @@ int main(int argc, char *argv[])
   //MainWidget w = MainWidget(nullptr);
 
   // This is our MainWidget class containing our GUI and functionality
-  MainWidget widget;
-
-  //ShipInfo("Emerald", &widget);
+  MainWidget widget(nullptr);
 
   widget.show(); // Show main window
 

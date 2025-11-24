@@ -8,7 +8,7 @@ ShipInfo::ShipInfo(const QString& str, QWidget *parent) :
     }
 
 ShipInfo::~ShipInfo() {
-    std::cout << "when called\nresearch";
+    std::cout << "ShipInfo::~ShipInfo\n";
 }
 
 // Constructor for main window
@@ -17,8 +17,10 @@ MainWidget::MainWidget(QWidget *parent) :
 {
   button_       = new QPushButton(tr("Push Me!"), this);
   textBrowser_  = new QTextBrowser(); // pass this and see fun in left angle/ why?
-  secRow       = new SecondRow(liftingPlaceholder, this);
+
   shipData_     = new ShipInfo("Emerald", this);
+  
+  secRow       = new SecondRow(liftingPlaceholder, this);
   thirdRow      = new ThirdRow(this);
 
   //sec_row->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);

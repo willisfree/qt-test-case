@@ -51,6 +51,10 @@ class Ship {
             return this->specs.liftingCapactiy;
         }
 
+        bool isOverloaded(int weight) {
+            return weight >= this->specs.liftingCapactiy;
+        }
+
     private:
         Specification specs;
 };

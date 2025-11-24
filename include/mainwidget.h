@@ -1,6 +1,8 @@
 #ifndef MAINWIDGET_H
 #define MAINWIDGET_H
 
+#include <numeric>
+
 #include <QWidget>
 #include <QProcess>
 #include <QLabel>
@@ -22,6 +24,9 @@
 class QPushButton;
 class QTextBrowser;
 
+class SecondRow;
+class ThirdRow;
+
 
 
 static const char* liftingPlaceholder = "Грзоподъёмность судна (в тоннах)";
@@ -30,11 +35,53 @@ static const char* liftingErr = "Максимальная грузоподъём
 static const char* numberOfCargos = "\320\232\320\276\320\273\320\270\321\207\320\265\321\201\321\202\320\262\320\276 \320\263\321\200\321\203\320\267\320\276\320\262: ";
 static const char* commonWeight = "Общий вес: ";
 static const char* commonPrice = "Общая стоимость: ";
+static const char* OVERLOAD = "Перегруз: ";
 
 
 static const char* boxWeightPLaceholder = "Вес груза: ";
 static const char* boxPricePlaceholder = "Цена груза: ";
 
+
+
+class ShipInfo : public QLabel {
+    Q_OBJECT
+
+public:
+        explicit ShipInfo(const QString& str, QWidget* parent = 0);
+        ~ShipInfo();
+
+        //path to picture. // WIP
+        QString modelName;
+        Ship ship;
+};
+
+// This is the declaration of our MainWidget class
+// The definition/implementation is in mainwidget.cpp
+class MainWidget : public QWidget {
+  Q_OBJECT
+
+public:
+  explicit MainWidget(QWidget *parent = 0); //Constructor
+  ~MainWidget(); // Destructor
+
+private slots:
+  void onButtonReleased(); // Handler for button presses
+  void onCaptureProcessOutput(); // Handler for Process output
+
+private:
+  QPushButton*  button_;
+  QTextBrowser* textBrowser_;
+  QProcess      process_;   // This is the process the button will fire off
+
+  SecondRow* secRow;
+  ThirdRow* thirdRow;
+
+  ShipInfo* shipData_;
+
+  friend class SecondRow;
+  friend class ThirdRow;
+
+};
 
 
 class CustomInput : public QWidget {
@@ -85,34 +132,6 @@ protected:
 
 
 
-class SecondRow : public CustomInput {
-    Q_OBJECT
-public:
-    SecondRow(const QString& placeholder, QWidget* parent)
-    : CustomInput(placeholder, parent)
-    {
-        // Подключаем сигнал clicked() к нашему слоту обновления текста
-        connect(this->button, &QPushButton::clicked, this, &SecondRow::updateText);
-    }
-
-private slots:
-    void updateText() override {
-        int extractedShipCap = Algos::firstIntFromStr(this->lineEdit->text().toUtf8().constData());
-        if (extractedShipCap > 10000) {
-          throw LogicErr(liftingErr);
-        }
-        ship.updateCap(extractedShipCap);
-
-        QString liftingInfo = QString(placeholder + ": %1").arg(extractedShipCap);
-        lineEdit->setText(liftingInfo);
-
-        qDebug() << "Текущий КАП:" << ship.getCap();
-    }
-
-private:
-    Ship ship;
-};
-
 
 class ThirdRow : public QWidget {
     Q_OBJECT
@@ -131,6 +150,7 @@ public:
         totalLabel = new QLabel(this);
         totalWeight = new QLabel(this);
         totalPrice = new QLabel(this);
+        overload = new QLabel(this);
 
 
         lineEdit->setPlaceholderText(boxWeightPLaceholder);
@@ -144,6 +164,7 @@ public:
         vbox->addWidget(totalLabel);
         vbox->addWidget(totalWeight);
         vbox->addWidget(totalPrice);
+        vbox->addWidget(overload);
 
 
         setLayout(vbox);
@@ -162,6 +183,7 @@ public:
         totalPrice->setText(commonPrice);
         pushButton->setText(QCoreApplication::translate("ThirdRow", "+", nullptr));
         totalLabel->setText(QCoreApplication::translate("ThirdRow", numberOfCargos, nullptr));
+        overload->setText(OVERLOAD);
     } // retranslateUi
 
 
@@ -192,15 +214,25 @@ private slots:
         lineEdit_2->setText(bpp);
     }
 
-private:
+public slots:
   void updateLabels() {
       QString totalVal = QString(QString(numberOfCargos) + ": %1").arg(boxes.size());
       totalLabel->setText(QCoreApplication::translate("ThirdRow", totalVal.toUtf8().constData(), nullptr));
 
-      totalVal = QString(QString(commonWeight) + ": %1").arg(boxes.size());
+      int totalBoxWeight = std::accumulate(boxes.begin(), boxes.end(), 0, [](int init, const CargoBox& box) { return init+box.weight; });
+      totalVal = QString(QString(commonWeight) + ": %1").arg(totalBoxWeight);
       totalWeight->setText(QCoreApplication::translate("ThirdRow", totalVal.toUtf8().constData(), nullptr));
+
+
+      auto p = qobject_cast<MainWidget*>(this->parent());
+      if (p) {
+            const char* overloadStatus = p->shipData_->ship.isOverloaded(totalBoxWeight) ? "Да" : "Нет";
+            QString overloadStr = QString(QString(OVERLOAD) + ": %1").arg(overloadStatus);
+            overload->setText(overloadStr);
+        }
       
-      totalVal = QString(QString(commonPrice) + ": %1").arg(boxes.size());
+      int totalBoxPrice = std::accumulate(boxes.begin(), boxes.end(), 0, [](int init, const CargoBox& box) { return init+box.price; });
+      totalVal = QString(QString(commonPrice) + ": %1").arg(totalBoxPrice);
       totalPrice->setText(QCoreApplication::translate("ThirdRow", totalVal.toUtf8().constData(), nullptr));
 
 
@@ -216,44 +248,44 @@ private:
   QLabel *totalWeight;
   QLabel *totalPrice;
 
+  QLabel *overload;
+
+
   QVector<CargoBox> boxes;
 };
 
 
-class ShipInfo : public QLabel {
+
+
+class SecondRow : public CustomInput {
     Q_OBJECT
-
 public:
-        explicit ShipInfo(const QString& str, QWidget* parent = 0);
-        ~ShipInfo();
+    SecondRow(const QString& placeholder, QWidget* parent)
+    : CustomInput(placeholder, parent)
+    {
+        // Подключаем сигнал clicked() к нашему слоту обновления текста
+        connect(this->button, &QPushButton::clicked, this, &SecondRow::updateText);
+        //connect(this->button, &QPushButton::clicked, this, &ThirdRow::updateLabels);
 
-private:
-        //path to picture. :) just fun task for me
-        QString modelName;
+    }
+
+public slots:
+    void updateText() override {
+        int extractedShipCap = Algos::firstIntFromStr(this->lineEdit->text().toUtf8().constData());
+        if (extractedShipCap > 10000) {
+          throw LogicErr(liftingErr);
+        }
+        auto p = qobject_cast<MainWidget*>(this->parent());
+        if (p) {
+             p->shipData_->ship.updateCap(extractedShipCap);
+             p->thirdRow->updateLabels();   // todo: research common pattern for such cases
+             qDebug() << "Текущий КАП:" << p->shipData_->ship.getCap();
+        }
+
+        QString liftingInfo = QString(placeholder + ": %1").arg(extractedShipCap);
+        lineEdit->setText(liftingInfo);
+    }
 };
 
-// This is the declaration of our MainWidget class
-// The definition/implementation is in mainwidget.cpp
-class MainWidget : public QWidget {
-  Q_OBJECT
-
-public:
-  explicit MainWidget(QWidget *parent = 0); //Constructor
-  ~MainWidget(); // Destructor
-
-private slots:
-  void onButtonReleased(); // Handler for button presses
-  void onCaptureProcessOutput(); // Handler for Process output
-
-private:
-  QPushButton*  button_;
-  QTextBrowser* textBrowser_;
-  QProcess      process_;   // This is the process the button will fire off
-
-  SecondRow* secRow;
-  ThirdRow* thirdRow;
-
-  ShipInfo* shipData_;
-};
 
 #endif // MAINWIDGET_H
